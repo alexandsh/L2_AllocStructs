@@ -1,4 +1,4 @@
-#include "hash_table.h"
+#include "hashtable.h"
 #include "helpers.h"
 #include <string.h>
 
