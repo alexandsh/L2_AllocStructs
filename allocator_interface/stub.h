@@ -5,9 +5,8 @@
 
 #include "allocator.h"
 
-
-void stub_free(IAllocator* self, void* ptr);
-void* stub_realloc(IAllocator* self, void* ptr, size_t size);
-void stub_reset(IAllocator* self);
+void stub_free(IAllocator *self, void *ptr);
+void *stub_realloc(IAllocator *self, void *ptr, size_t size);
+void stub_reset(IAllocator *self);
 
 #endif
