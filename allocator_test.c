@@ -7,9 +7,12 @@
 #include "linear_alloc.h"
 #include "pool_alloc.h"
 
-static int check(const char *name, int ok) {
+static int failures = 0;
+
+static void check(const char *name, int ok) {
   printf("  [%s] %s\n", ok ? "OK" : "FAIL", name);
-  return ok;
+  if (!ok)
+    ++failures;
 }
 
 static void test_linear(void) {
@@ -74,6 +77,10 @@ static void test_buddy(void) {
   printf("== Buddy ==\n");
   size_t total = 1024;
   unsigned char *buf = (unsigned char *)malloc(total);
+  check("test buffer allocated", buf != NULL);
+  if (!buf)
+    return;
+
   BuddyCtx ctx;
   IAllocator a = create_buddy_alloc(&ctx, buf, total, 32);
 
@@ -92,11 +99,14 @@ static void test_buddy(void) {
   i_free(&a, big);
 
   void *r = i_alloc(&a, 30);
-  memcpy(r, "hello", 6);
-  void *r2 = i_realloc(&a, r, 200);
-  check("realloc grow", r2 != NULL);
-  check("realloc keeps data", r2 && memcmp(r2, "hello", 6) == 0);
-  i_free(&a, r2);
+  check("alloc before realloc", r != NULL);
+  if (r) {
+    memcpy(r, "hello", 6);
+    void *r2 = i_realloc(&a, r, 200);
+    check("realloc grow", r2 != NULL);
+    check("realloc keeps data", r2 && memcmp(r2, "hello", 6) == 0);
+    i_free(&a, r2);
+  }
 
   int filled = 0;
   void *hold[64];
@@ -118,6 +128,9 @@ static void test_sys(void) {
   IAllocator a = create_sys_alloc();
   int *p = (int *)i_alloc(&a, sizeof(int) * 4);
   check("malloc wrap", p != NULL);
+  if (!p)
+    return;
+
   for (int i = 0; i < 4; ++i)
     p[i] = i * i;
   int *q = (int *)i_realloc(&a, p, sizeof(int) * 8);
@@ -131,6 +144,12 @@ int main(void) {
   test_linear();
   test_pool();
   test_buddy();
+
+  if (failures) {
+    printf("failed: %d\n", failures);
+    return 1;
+  }
+
   printf("done\n");
   return 0;
 }
