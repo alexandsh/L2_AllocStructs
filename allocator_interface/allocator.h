@@ -1,7 +1,7 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
-#include <stddef.h>
+#include <cstddef>
 
 typedef struct IAllocator {
   void *(*alloc)(struct IAllocator *self, size_t size);
